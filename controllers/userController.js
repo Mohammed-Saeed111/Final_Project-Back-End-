@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
@@ -19,11 +20,39 @@ const getRazorpay = () =>
 const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
+=======
+import validator from 'validator';
+import bcrypt from 'bcrypt';
+import userModel from '../models/userModel.js';
+import doctorModel from '../models/doctorModel.js';
+import appointmentModel from '../models/appointmentModel.js';
+import jwt from 'jsonwebtoken';
+import { v2 as cloudinary } from 'cloudinary';
+import Razorpay from 'razorpay';
+
+const registerUser = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        if (!name || !password || !email) {
+            return res.json({ success: false, message: 'Missing details' });
+        }
+        if (!validator.isEmail(email)) {
+            return res.json({ success: false, message: 'Enter a valid email' });
+        }
+        if (password.length < 8) {
+            return res.json({ success: false, message: 'Enter a strong password' });
+        }
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+<<<<<<< HEAD
         const newUser = new userModel({ name, email, password: hashedPassword });
+=======
+        const userData = { name, email, password: hashedPassword };
+        const newUser = new userModel(userData);
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
         const user = await newUser.save();
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
@@ -35,13 +64,17 @@ const registerUser = async (req, res) => {
     }
 };
 
+<<<<<<< HEAD
 // ─── POST /api/user/login ─────────────────────────────────────────────────────
+=======
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await userModel.findOne({ email });
 
         if (!user) {
+<<<<<<< HEAD
             return res.status(401).json({ success: false, message: 'User does not exist' });
         }
 
@@ -53,12 +86,25 @@ const loginUser = async (req, res) => {
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
         res.json({ success: true, token });
 
+=======
+            return res.json({ success: false, message: 'User does not exist' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+            res.json({ success: true, token });
+        } else {
+            res.json({ success: false, message: 'Invalid credentials' });
+        }
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── GET /api/user/get-profile ────────────────────────────────────────────────
 const getProfile = async (req, res) => {
     try {
@@ -71,12 +117,20 @@ const getProfile = async (req, res) => {
         const userData = await userModel.findById(userId).select('-password');
         res.json({ success: true, userData });
 
+=======
+const getProfile = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const userData = await userModel.findById(userId).select('-password');
+        res.json({ success: true, userData });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── POST /api/user/update-profile ───────────────────────────────────────────
 const updateProfile = async (req, res) => {
     try {
@@ -136,10 +190,33 @@ const updateProfile = async (req, res) => {
 
     } catch (error) {
         console.log('❌ Update profile error:', error.message);
+=======
+const updateProfile = async (req, res) => {
+    try {
+        const { userId, name, phone, address, dob, gender } = req.body;
+        const imageFile = req.file;
+
+        if (!name || !phone || !dob || !gender) {
+            return res.json({ success: false, message: 'Data missing' });
+        }
+
+        await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address), dob, gender });
+
+        if (imageFile) {
+            const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: 'image' });
+            const imageURL = imageUpload.secure_url;
+            await userModel.findByIdAndUpdate(userId, { image: imageURL });
+        }
+
+        res.json({ success: true, message: 'Profile updated' });
+    } catch (error) {
+        console.log(error);
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── POST /api/user/book-appointment ─────────────────────────────────────────
 const bookAppointment = async (req, res) => {
     try {
@@ -194,12 +271,48 @@ const bookAppointment = async (req, res) => {
 
         res.json({ success: true, message: 'Appointment booked successfully' });
 
+=======
+const bookAppointment = async (req, res) => {
+    try {
+        const { userId, docId, slotDate, slotTime } = req.body;
+        const docData = await doctorModel.findById(docId).select('-password');
+
+        if (!docData.available) {
+            return res.json({ success: false, message: 'Doctor not available' });
+        }
+
+        let slots_booked = docData.slots_booked;
+        if (slots_booked[slotDate]) {
+            if (slots_booked[slotDate].includes(slotTime)) {
+                return res.json({ success: false, message: 'Slot not available' });
+            } else {
+                slots_booked[slotDate].push(slotTime);
+            }
+        } else {
+            slots_booked[slotDate] = [];
+            slots_booked[slotDate].push(slotTime);
+        }
+
+        const userData = await userModel.findById(userId).select('-password');
+        delete docData.slots_booked;
+
+        const appointmentData = {
+            userId, docId, userData, docData, amount: docData.fees, slotTime, slotDate, date: Date.now()
+        };
+
+        const newAppointment = new appointmentModel(appointmentData);
+        await newAppointment.save();
+        
+        await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+        res.json({ success: true, message: 'Appointment booked' });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── GET /api/user/appointments ───────────────────────────────────────────────
 const listAppointment = async (req, res) => {
     try {
@@ -212,12 +325,20 @@ const listAppointment = async (req, res) => {
         const appointments = await appointmentModel.find({ userId });
         res.json({ success: true, appointments });
 
+=======
+const listAppointment = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const appointments = await appointmentModel.find({ userId });
+        res.json({ success: true, appointments });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── POST /api/user/cancel-appointment ───────────────────────────────────────
 const cancelAppointment = async (req, res) => {
     try {
@@ -238,12 +359,22 @@ const cancelAppointment = async (req, res) => {
         if (appointmentData.userId.toString() !== userId.toString()) {
             console.log(`ID Mismatch: appointment userId=${appointmentData.userId}, authenticated userId=${userId}`);
             return res.status(403).json({ success: false, message: 'Unauthorized action' });
+=======
+const cancelAppointment = async (req, res) => {
+    try {
+        const { userId, appointmentId } = req.body;
+        const appointmentData = await appointmentModel.findById(appointmentId);
+
+        if (appointmentData.userId !== userId) {
+            return res.json({ success: false, message: 'Unauthorized action' });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
         const { docId, slotDate, slotTime } = appointmentData;
         const doctorData = await doctorModel.findById(docId);
+<<<<<<< HEAD
 
         // Only update slots if the doctor still exists in the DB
         // (static/seed appointments may have a docId that doesn't match any DB record)
@@ -255,24 +386,45 @@ const cancelAppointment = async (req, res) => {
 
         res.json({ success: true, message: 'Appointment cancelled successfully' });
 
+=======
+        
+        let slots_booked = doctorData.slots_booked;
+        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime);
+
+        await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+        res.json({ success: true, message: 'Appointment cancelled' });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── POST /api/user/payment-razorpay ─────────────────────────────────────────
+=======
+const razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
+
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 const paymentRazorpay = async (req, res) => {
     try {
         const { appointmentId } = req.body;
         const appointmentData = await appointmentModel.findById(appointmentId);
 
         if (!appointmentData || appointmentData.cancelled) {
+<<<<<<< HEAD
             return res.status(404).json({ success: false, message: 'Appointment cancelled or not found' });
+=======
+            return res.json({ success: false, message: 'Appointment cancelled or not found' });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
         }
 
         const options = {
             amount: appointmentData.amount * 100,
+<<<<<<< HEAD
             currency: process.env.CURRENCY || 'INR',
             receipt: appointmentId,
         };
@@ -280,12 +432,21 @@ const paymentRazorpay = async (req, res) => {
         const order = await getRazorpay().orders.create(options);
         res.json({ success: true, order });
 
+=======
+            currency: process.env.CURRENCY,
+            receipt: appointmentId
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+        res.json({ success: true, order });
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 // ─── POST /api/user/verify-razorpay ──────────────────────────────────────────
 const verifyRazorpay = async (req, res) => {
     try {
@@ -299,12 +460,26 @@ const verifyRazorpay = async (req, res) => {
 
         res.json({ success: false, message: 'Payment not completed' });
 
+=======
+const verifyRazorpay = async (req, res) => {
+    try {
+        const { razorpay_order_id } = req.body;
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+
+        if (orderInfo.status === 'paid') {
+            await appointmentModel.findByIdAndUpdate(orderInfo.receipt, { payment: true });
+            res.json({ success: true, message: 'Payment successful' });
+        } else {
+            res.json({ success: false, message: 'Payment failed' });
+        }
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
+<<<<<<< HEAD
 export {
     registerUser,
     loginUser,
@@ -316,3 +491,6 @@ export {
     paymentRazorpay,
     verifyRazorpay,
 };
+=======
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentRazorpay, verifyRazorpay };
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97

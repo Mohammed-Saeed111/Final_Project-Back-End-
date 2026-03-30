@@ -1,4 +1,5 @@
 import express from 'express';
+<<<<<<< HEAD
 import upload from '../middleware/multer.js';
 import authUser from '../middleware/authUser.js';
 import validate from '../middleware/validate.js';
@@ -70,5 +71,22 @@ userRouter.get('/test-cloudinary', async (req, res) => {
         });
     }
 });
+=======
+import { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentRazorpay, verifyRazorpay } from '../controllers/userController.js';
+import authUser from '../middleware/authUser.js';
+import upload from '../middleware/multer.js';
+
+const userRouter = express.Router();
+
+userRouter.post('/register', registerUser);
+userRouter.post('/login', loginUser);
+userRouter.get('/get-profile', authUser, getProfile);
+userRouter.post('/update-profile', upload.single('image'), authUser, updateProfile);
+userRouter.post('/book-appointment', authUser, bookAppointment);
+userRouter.get('/appointments', authUser, listAppointment);
+userRouter.post('/cancel-appointment', authUser, cancelAppointment);
+userRouter.post('/payment-razorpay', authUser, paymentRazorpay);
+userRouter.post('/verify-razorpay', authUser, verifyRazorpay);
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 
 export default userRouter;

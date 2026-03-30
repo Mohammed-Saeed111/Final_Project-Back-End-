@@ -12,7 +12,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
+<<<<<<< HEAD
     "joi": "^18.1.1",
+=======
+>>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.0",
     "multer": "^1.4.5-lts.1",
