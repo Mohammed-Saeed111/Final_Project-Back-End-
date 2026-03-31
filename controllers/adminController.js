@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import bcrypt from 'bcrypt';
 import { v2 as cloudinary } from 'cloudinary';
 import jwt from 'jsonwebtoken';
@@ -25,22 +24,11 @@ const loginAdmin = async (req, res) => {
 };
 
 // ─── POST /api/admin/add-doctor ───────────────────────────────────────────────
-=======
-import validator from 'validator';
-import bcrypt from 'bcrypt';
-import { v2 as cloudinary } from 'cloudinary';
-import doctorModel from '../models/doctorModel.js';
-import appointmentModel from '../models/appointmentModel.js';
-import userModel from '../models/userModel.js';
-import jwt from 'jsonwebtoken';
-
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 const addDoctor = async (req, res) => {
     try {
         const { name, email, password, speciality, degree, experience, about, fees, address } = req.body;
         const imageFile = req.file;
 
-<<<<<<< HEAD
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -58,37 +46,12 @@ const addDoctor = async (req, res) => {
             fees,
             address: JSON.parse(address),
             date: Date.now(),
-=======
-        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
-            return res.json({ success: false, message: 'Missing details' });
-        }
-        if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: 'Please enter a valid email' });
-        }
-        if (password.length < 8) {
-            return res.json({ success: false, message: 'Please enter a strong password' });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-        const imageUrl = imageUpload.secure_url;
-
-        const doctorData = {
-            name, email, image: imageUrl, password: hashedPassword,
-            speciality, degree, experience, about, fees,
-            address: JSON.parse(address), date: Date.now()
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
         };
 
         const newDoctor = new doctorModel(doctorData);
         await newDoctor.save();
-<<<<<<< HEAD
 
         res.json({ success: true, message: 'Doctor added successfully' });
-=======
-        res.json({ success: true, message: 'Doctor added' });
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 
     } catch (error) {
         console.log(error);
@@ -96,101 +59,58 @@ const addDoctor = async (req, res) => {
     }
 };
 
-<<<<<<< HEAD
 // ─── GET /api/admin/all-doctors ───────────────────────────────────────────────
-=======
-const loginAdmin = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-            const token = jwt.sign(email + password, process.env.JWT_SECRET);
-            res.json({ success: true, token });
-        } else {
-            res.json({ success: false, message: 'Invalid credentials' });
-        }
-    } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
-    }
-};
-
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 const allDoctors = async (req, res) => {
     try {
         const doctors = await doctorModel.find({}).select('-password');
         res.json({ success: true, doctors });
-<<<<<<< HEAD
 
-=======
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
-<<<<<<< HEAD
 // ─── GET /api/admin/appointments ──────────────────────────────────────────────
-=======
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 const appointmentsAdmin = async (req, res) => {
     try {
         const appointments = await appointmentModel.find({});
         res.json({ success: true, appointments });
-<<<<<<< HEAD
 
-=======
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
-<<<<<<< HEAD
 // ─── POST /api/admin/cancel-appointment ───────────────────────────────────────
-=======
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 const appointmentCancel = async (req, res) => {
     try {
         const { appointmentId } = req.body;
         const appointmentData = await appointmentModel.findById(appointmentId);
-<<<<<<< HEAD
 
         if (!appointmentData) {
             return res.status(404).json({ success: false, message: 'Appointment not found' });
         }
 
-=======
-        
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
         const { docId, slotDate, slotTime } = appointmentData;
         const doctorData = await doctorModel.findById(docId);
 
         let slots_booked = doctorData.slots_booked;
-<<<<<<< HEAD
         slots_booked[slotDate] = slots_booked[slotDate].filter((e) => e !== slotTime);
 
         await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
         res.json({ success: true, message: 'Appointment cancelled successfully' });
 
-=======
-        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime);
-
-        await doctorModel.findByIdAndUpdate(docId, { slots_booked });
-
-        res.json({ success: true, message: 'Appointment cancelled' });
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
-<<<<<<< HEAD
 // ─── GET /api/admin/dashboard ─────────────────────────────────────────────────
 const adminDashboard = async (req, res) => {
     try {
@@ -199,38 +119,20 @@ const adminDashboard = async (req, res) => {
             userModel.find({}),
             appointmentModel.find({}),
         ]);
-=======
-const adminDashboard = async (req, res) => {
-    try {
-        const doctors = await doctorModel.find({});
-        const users = await userModel.find({});
-        const appointments = await appointmentModel.find({});
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
 
         const dashData = {
             doctors: doctors.length,
             appointments: appointments.length,
             patients: users.length,
-<<<<<<< HEAD
             latestAppointments: [...appointments].reverse().slice(0, 5),
         };
 
         res.json({ success: true, dashData });
 
-=======
-            latestAppointments: appointments.reverse().slice(0, 5)
-        };
-
-        res.json({ success: true, dashData });
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message });
     }
 };
 
-<<<<<<< HEAD
 export { loginAdmin, addDoctor, allDoctors, appointmentsAdmin, appointmentCancel, adminDashboard };
-=======
-export { addDoctor, loginAdmin, allDoctors, appointmentsAdmin, appointmentCancel, adminDashboard };
->>>>>>> bfa079802a3ab0a16f9d79e8b18915ac48824e97
